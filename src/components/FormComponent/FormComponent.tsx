@@ -1,5 +1,6 @@
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useController } from 'react-hook-form';
 import styles from './FormComponent.module.scss';
 
 interface FormComponentProps {
@@ -9,26 +10,34 @@ interface FormComponentProps {
 	errors?: any;
 	isRequired?: boolean;
 	options?: string[];
+	rules?: any;
 }
 
 export const FormComponent: React.FC<FormComponentProps> = ({
 	label,
 	name,
-	register,
-	errors,
-	isRequired,
 	options,
+	rules,
 }) => {
+	const {
+		field,
+		fieldState: { invalid, isTouched, isDirty, error },
+		formState: { touchedFields, dirtyFields },
+	} = useController({
+		name,
+		rules,
+	});
+
+	console.log(field);
+
 	return (
 		<div>
 			<label className={styles.label} htmlFor={name}>
-				{errors[name] && (
-					<span className={styles.error}>This field is required</span>
-				)}
-				{!errors[name] && <span>{label}</span>}
+				{error && <span className={styles.error}>This field is required</span>}
+				{!error && <span>{label}</span>}
 			</label>
 			{options ? (
-				<select {...register(name)} className={styles.input}>
+				<select {...field} className={styles.input}>
 					{Array.isArray(options) &&
 						options.length > 0 &&
 						options.map((option) => (
@@ -39,7 +48,7 @@ export const FormComponent: React.FC<FormComponentProps> = ({
 				</select>
 			) : (
 				<input
-					{...register(name, { required: isRequired })}
+					{...field}
 					id={name}
 					name={name}
 					type="text"

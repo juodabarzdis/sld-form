@@ -1,5 +1,6 @@
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { FormComponent } from '../FormComponent/FormComponent';
@@ -12,14 +13,15 @@ type Inputs = {
 };
 
 export const Form = () => {
+	const navigate = useNavigate();
+	const formMethods = useForm<Inputs>();
 	const {
 		register,
 		handleSubmit,
 		reset,
 		formState: { errors, isSubmitSuccessful },
-	} = useForm<Inputs>();
+	} = formMethods;
 
-	const [apiData, setApiData] = useState([]);
 	const [countryNames, setCountryNames] = useState([]);
 	const [submittedData, setSubmittedData] = useState([]);
 
@@ -34,17 +36,20 @@ export const Form = () => {
 	});
 
 	api.interceptors.response.use(
-		function (response) {
+		(response) => {
 			return response;
 		},
-		function (error) {
+		(error) => {
 			if (error.response) {
 				if (error.response.status === 404) {
 					console.log('404 Error: Resource not found');
+					navigate('/error');
 				} else if (error.response.status === 500) {
 					console.log('500 Error: Internal server error');
+					navigate('/error');
 				} else if (error.response.status === 403) {
 					console.log('403 Error: Forbidden');
+					navigate('/error');
 				}
 			} else if (error.request) {
 				console.log('Request Error:', error.request);
@@ -59,7 +64,6 @@ export const Form = () => {
 		api
 			.get('/region/europe')
 			.then(function (response) {
-				setApiData(response.data);
 				const names = response.data.map((country: any) => country.name.common);
 				setCountryNames(names);
 			})
@@ -73,36 +77,32 @@ export const Form = () => {
 	};
 
 	return (
-		<>
-			<form
-				onSubmit={handleSubmit(onSubmit)}
-				name="myForm"
-				className={styles.form}
-			>
-				<FormComponent
-					label="First Name"
-					name="firstName"
-					register={register}
-					errors={errors}
-					isRequired={true}
-				/>
-				<FormComponent
-					label="Last Name"
-					name="lastName"
-					register={register}
-					errors={errors}
-					isRequired={true}
-				/>
-				<FormComponent
-					label="Country"
-					name="country"
-					register={register}
-					errors={errors}
-					options={countryNames}
-					isRequired={true}
-				/>
-				<input type="submit" className={styles.submitButton} />
-			</form>
+		<div className={styles.sectionWrapper}>
+			<FormProvider {...formMethods}>
+				<form
+					onSubmit={handleSubmit(onSubmit)}
+					name="myForm"
+					className={styles.form}
+				>
+					<FormComponent
+						label="First Name"
+						name="firstName"
+						rules={{ required: true }}
+					/>
+					<FormComponent
+						label="Last Name"
+						name="lastName"
+						rules={{ required: true }}
+					/>
+					<FormComponent
+						label="Country"
+						name="country"
+						rules={{ required: true }}
+						options={countryNames}
+					/>
+					<input type="submit" className={styles.submitButton} />
+				</form>
+			</FormProvider>
 			<div>
 				<ul>
 					{submittedData &&
@@ -113,6 +113,6 @@ export const Form = () => {
 						))}
 				</ul>
 			</div>
-		</>
+		</div>
 	);
 };

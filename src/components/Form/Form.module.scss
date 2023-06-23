@@ -1,3 +1,10 @@
+.sectionWrapper {
+	height: 90vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 .form {
 	display: flex;
 	flex-direction: column;
