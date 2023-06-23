@@ -1,7 +1,8 @@
 import './App.css';
+import React from 'react';
 
 function App() {
-	return <ds>.error</ds>;
+	return <div>hello world</div>;
 }
 
 export default App;
